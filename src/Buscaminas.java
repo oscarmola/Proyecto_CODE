@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class Buscaminas {
+public class Main {
     static char[][] tablero;
     static char[][] minas;
     static int[][] solucion;
@@ -9,7 +9,7 @@ public class Buscaminas {
     public static void main(String[] args) {
         cap = new Scanner(System.in);
 
-        System.out.println("Seleccione el nivel:\n1. Principiante\n2. Intermedio\n3. Experto\n4. Maestro");
+        System.out.println("Seleccione el nivel:\n1. Principiante\n2. Intermedio\n3. Experto");
         int nivel = cap.nextInt();
 
         switch (nivel){
@@ -22,17 +22,10 @@ public class Buscaminas {
             case 3:
                 iniciarTablero(10, 10, 30);
                 break;
-            case 4:
-                iniciarTablero(15, 15, 50);
-                break;
-            default:
-                System.out.println("Nivel no válido. Seleccionando nivel Principiante por defecto.");
-                iniciarTablero(3, 3, 1);
-                break;
         }
 
         generarSolucion();
-        jugar();
+        jugar(1);
     }
 
     public static void mostrarTablero() {
@@ -87,79 +80,59 @@ public class Buscaminas {
         }
     }
 
-    public static void jugar() {
+    public static void jugar(int cantidadMinas) {
         boolean completado = false;
         do {
-            mostrarTablero();
-            System.out.print("Ingrese fila (o -1 para marcar/desmarcar una mina): ");
-            int x = cap.nextInt();
-            if (x == -1) {
-                System.out.print("Ingrese fila para marcar/desmarcar: ");
-                int markX = cap.nextInt() - 1;
-                System.out.print("Ingrese columna para marcar/desmarcar: ");
-                int markY = cap.nextInt() - 1;
-
-                if (validarEntrada(markX, markY)) {
-                    if (tablero[markX][markY] == '-') {
-                        tablero[markX][markY] = 'M';
-                    } else if (tablero[markX][markY] == 'M') {
-                        tablero[markX][markY] = '-';
-                    } else {
-                        System.out.println("No se puede marcar esta casilla.");
-                    }
-                } else {
-                    System.out.println("Entrada inválida. Intente de nuevo.");
-                }
-                continue;
-            }
-
+            System.out.print("Ingrese fila: ");
+            int x = cap.nextInt() - 1;
             System.out.print("Ingrese columna: ");
             int y = cap.nextInt() - 1;
 
-            if (validarEntrada(x - 1, y)) {
-                if (minas[x - 1][y] == 'X') {
-                    System.out.println("Perdiste!");
-                    revelarMinas();
-                    mostrarTablero();
-                    break;
-                } else {
-                    tablero[x - 1][y] = (char) (solucion[x - 1][y] + '0');
-                    if (verificarVictoria()) {
-                        System.out.println("Ganaste!");
-                        revelarMinas();
-                        mostrarTablero();
-                        break;
+            if (minas[x][y] == 'X') {
+                System.out.println("Perdiste pendejo!");
+                for (int i = 0; i < minas.length; i++) {
+                    for (int j = 0; j < minas[0].length; j++) {
+                        if (minas[i][j] == 'X') {
+                            tablero[i][j] = 'X';
+                        }
                     }
                 }
+                mostrarTablero();
+                break;
             } else {
-                System.out.println("Entrada inválida. Intente de nuevo.");
+                tablero[x][y] = (solucion[x][y] + "").charAt(0);
+                mostrarTablero();
+            }
+
+            boolean victoria = verficarVictoria(cantidadMinas);
+
+            if (victoria) {
+                System.out.println("Ganaste!");
+                for (int i = 0; i < minas.length; i++) {
+                    for (int j = 0; j < minas[0].length; j++) {
+                        if (minas[i][j] == 'X') {
+                            tablero[i][j] = '*';
+                        }
+                    }
+                }
+                mostrarTablero();
+                break;
             }
         } while (!completado);
     }
 
-    public static boolean verificarVictoria() {
+    public static boolean verficarVictoria(int cantidadMinas) {
         int posiblesMinas = 0;
         for (int i = 0; i < tablero.length; i++) {
             for (int j = 0; j < tablero[0].length; j++) {
-                if (tablero[i][j] == '-' || tablero[i][j] == 'M') {
+                if (tablero[i][j] == '-') {
                     posiblesMinas++;
                 }
             }
         }
-        return posiblesMinas == 0;
-    }
-
-    public static void revelarMinas() {
-        for (int i = 0; i < minas.length; i++) {
-            for (int j = 0; j < minas[0].length; j++) {
-                if (minas[i][j] == 'X') {
-                    tablero[i][j] = 'X';
-                }
-            }
+        if (posiblesMinas == cantidadMinas) {
+            return true;
         }
-    }
-
-    public static boolean validarEntrada(int x, int y) {
-        return x >= 0 && y >= 0 && x < tablero.length && y < tablero[0].length;
+        return false;
     }
 }
